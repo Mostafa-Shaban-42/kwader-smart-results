@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة الإدارة - SMART RESULTS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <div class="sidebar">
+    <h2>SMART RESULTS</h2>
+    <p>كوادر للتمريض - KAWADER NURSING SCHOOL</p>
+    <a href="#" onclick="showSection('upload'); return false;">رفع Excel</a>
+    <a href="#" onclick="showSection('analytics'); return false;">الإحصائيات</a>
+    <a href="#" onclick="logout(); return false;">خروج</a>
+  </div>
+
+  <div class="main">
+    <!-- Login -->
+    <div id="loginBox" class="card">
+      <h2>دخول الإدارة</h2>
+      <label>البريد الإلكتروني</label>
+      <input id="email" placeholder="admin@kawader.edu" type="email">
+      <label>كلمة المرور</label>
+      <input id="password" type="password" placeholder="كلمة المرور">
+      <button id="loginBtn" onclick="adminLogin()">دخول</button>
+    </div>
+
+    <!-- Upload -->
+    <div id="uploadBox" class="card hidden">
+      <h2>رفع ملف Excel</h2>
+      <p style="color:#7040A5;font-size:14px">صيغة الملف: الصف 1 = الأعمدة | الصف 2 = MAX + الدرجات النهائية (100 / 50 / 20 / 10) | الصف 3+ = بيانات الطلاب</p>
+      <label>اختر ملف Excel</label>
+      <input type="file" id="excelFile" accept=".xlsx,.xls">
+      <button id="uploadBtn" onclick="uploadExcel()">رفع وفحص</button>
+
+      <div id="issuesBox"></div>
+      <div id="previewBox"></div>
+      <pre id="uploadResult"></pre>
+
+      <button id="calcBtn" onclick="calculateBatch()" disabled>حساب النتائج</button>
+      <button id="publishBtn" onclick="publishBatch()" disabled>نشر النتائج</button>
+    </div>
+
+    <!-- Analytics -->
+    <div id="analyticsBox" class="card hidden">
+      <h2>الإحصائيات</h2>
+      <label>السنة الدراسية</label>
+      <select id="anaYear">
+        <option value="first_year">السنة الأولى</option>
+        <option value="second_year">السنة الثانية</option>
+        <option value="third_year">السنة الثالثة</option>
+      </select>
+      <button id="anaBtn" onclick="loadAnalytics()">عرض</button>
+      <pre id="anaResult"></pre>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>

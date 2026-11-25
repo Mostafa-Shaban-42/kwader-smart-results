@@ -1,0 +1,7 @@
+{
+  "indexes": [
+    {"collectionGroup": "results", "queryScope": "COLLECTION", "fields": [{"fieldPath": "student_id", "order": "ASCENDING"}, {"fieldPath": "academic_year", "order": "ASCENDING"}, {"fieldPath": "publication_id", "order": "ASCENDING"}]},
+    {"collectionGroup": "publications", "queryScope": "COLLECTION", "fields": [{"fieldPath": "academic_year", "order": "ASCENDING"}, {"fieldPath": "status", "order": "ASCENDING"}]}
+  ],
+  "fieldOverrides": []
+}

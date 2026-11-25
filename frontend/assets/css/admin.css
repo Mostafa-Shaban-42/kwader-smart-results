@@ -1,0 +1,8 @@
+.admin-layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#54218C;color:#fff;padding:24px}
+.sidebar a{color:#fff;display:block;padding:10px;text-decoration:none;border-radius:8px}
+.sidebar a:hover{background:#7040A5}
+.main{flex:1;padding:24px;background:#F5F0FA}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat-card{background:#fff;padding:20px;border-radius:14px;text-align:center}
+@media(max-width:768px){.admin-layout{flex-direction:column}.sidebar{width:100%}}

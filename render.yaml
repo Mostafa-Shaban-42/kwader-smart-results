@@ -1,0 +1,27 @@
+services:
+    - type: web
+    name: smart-results-backend
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+            - key: PYTHON_VERSION
+        value: 3.11.0
+            - key: ENVIRONMENT
+        value: production
+            - key: API_V1_PREFIX
+        value: /api/v1
+            - key: FRONTEND_ORIGIN
+        value: https://smart-results.vercel.app
+            - key: FIREBASE_PROJECT_ID
+        sync: false
+            - key: JWT_SECRET
+        generateValue: true
+            - key: JWT_EXPIRE_MINUTES
+        value: 120
+            - key: MAX_UPLOAD_SIZE_MB
+        value: 10
+            - key: RATE_LIMIT_ENABLED
+        value: true
+            - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
+        sync: false

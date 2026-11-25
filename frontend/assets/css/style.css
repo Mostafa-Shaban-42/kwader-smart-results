@@ -1,0 +1,25 @@
+:root{--primary:#54218C;--secondary:#7040A5;--accent:#9670C8;--bg:#F5F0FA;--text:#28183A}
+*{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text)}
+.container{max-width:720px;margin:0 auto;padding:20px}
+header{text-align:center;color:var(--primary)}
+header h1{margin:0;font-size:32px;letter-spacing:2px}
+header p{margin:4px 0;color:var(--secondary);font-weight:700}
+.card{background:#fff;border:1px solid #E8DFF2;border-radius:16px;padding:24px;margin-top:20px;box-shadow:0 4px 20px rgba(84,33,140,.08)}
+label{display:block;margin:14px 0 6px;font-weight:600}
+input,select{width:100%;padding:12px;border:1px solid #D9CDEB;border-radius:10px;font-size:16px}
+button{width:100%;margin-top:20px;padding:14px;background:var(--primary);color:#fff;border:0;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}
+button:hover{background:var(--secondary)}
+.hidden{display:none}
+.error{color:#B42318;background:#FEF3F2;padding:10px;border-radius:8px}
+table{width:100%;border-collapse:collapse;margin-top:16px}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:center}
+th{background:var(--bg);color:var(--primary)}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.summary div{background:var(--bg);padding:12px;border-radius:10px;text-align:center}
+footer{text-align:center;margin-top:20px;color:#888;font-size:13px}
+.issue{border:1px solid #FECDC2;background:#FFFAEB;padding:12px;border-radius:10px;margin:8px 0}
+.issue b{color:#B42318}
+.issue .reason{color:#344054;font-size:14px}
+.issue .action{color:#027A48;font-weight:600}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SMART RESULTS - مدرسة كوادر للتمريض</title>
+<link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/student.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script></head>
+<body>
+<div class="container">
+<header><h1>SMART RESULTS</h1><p>مدرسة كوادر للتمريض - KAWADER NURSING SCHOOL</p><span>بوابة نتائج الطلاب</span></header>
+<div class="card" id="lookupCard">
+<h2>أدخل بياناتك</h2>
+<label>اسم الطالب</label><input id="studentName" placeholder="مثال: أحمد محمد">
+<label>السنة الدراسية</label>
+<select id="academicYear"><option value="">اختر السنة الدراسية</option><option value="first_year">السنة الأولى</option><option value="second_year">السنة الثانية</option><option value="third_year">السنة الثالثة</option></select>
+<label>رقم الطالب</label><input id="studentId" placeholder="001254" inputmode="numeric">
+<button id="viewBtn" onclick="lookupResult()">عرض النتيجة</button>
+<p id="errorMsg" class="error hidden"></p>
+</div>
+<div class="card hidden" id="resultCard">
+<h2>نتيجة الطالب</h2>
+<p><b>الاسم:</b> <span id="rName"></span> | <b>الرقم:</b> <span id="rId"></span> | <b>السنة:</b> <span id="rYear"></span></p>
+<table><thead><tr><th>المادة</th><th>الدرجة</th><th>النهاية العظمى</th></tr></thead><tbody id="subjectsBody"></tbody></table>
+<div class="summary"><div>المجموع: <b id="rTotal"></b></div><div>النسبة: <b id="rPct"></b>%</div><div>التقدير: <b id="rGrade"></b></div><div>الترتيب: <b id="rRank"></b></div></div>
+<canvas id="subjectChart"></canvas>
+<button onclick="location.reload()">بحث جديد</button>
+</div><footer>نظام نتائج المدرسة</footer></div>
+<script src="assets/js/api.js"></script><script src="assets/js/charts.js"></script><script src="assets/js/app.js"></script>
+</body></html>
