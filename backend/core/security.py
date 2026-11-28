@@ -6,11 +6,12 @@ from backend.core.config import settings
 from backend.core.exceptions import unauthorized
 
 def normalize_name(name: str) -> str:
-    """Remove extra spaces, unify spacing, lower case."""
-    if not name:
-        return ""
+    if not name: return ""
     name = str(name).strip()
     name = re.sub(r"\s+", " ", name)
+    # Arabic normalization: remove diacritics, unify alef, teh marbuta
+    for a, b in [("أ","ا"),("إ","ا"),("آ","ا"),("ة","ه"),("ـ","")]:
+        name = name.replace(a, b)
     return name.lower()
 
 def names_match(input_name: str, stored_name: str) -> bool:
@@ -30,21 +31,15 @@ def create_token(email: str) -> str:
 def verify_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
-        if payload.get("role") != "admin":
-            raise unauthorized()
+        if payload.get("role") != "admin": raise unauthorized()
         return payload
     except Exception:
         raise unauthorized("INVALID_TOKEN", "Invalid or expired token")
 
 _attempts: dict[str, list[float]] = {}
-
 def check_lookup_rate_limit(ip: str) -> None:
-    """5 lookup attempts / 10 minutes per IP. Anti-enumeration."""
-    if not settings.RATE_LIMIT_ENABLED:
-        return
+    if not settings.RATE_LIMIT_ENABLED: return
     now = time.time()
     lst = [t for t in _attempts.get(ip, []) if now - t < 600]
-    if len(lst) >= 5:
-        raise unauthorized("RATE_LIMITED", "Too many attempts. Please try again later.")
-    lst.append(now)
-    _attempts[ip] = lst
+    if len(lst) >= 5: raise unauthorized("RATE_LIMITED", "Too many attempts. Please try again later.")
+    lst.append(now); _attempts[ip] = lst

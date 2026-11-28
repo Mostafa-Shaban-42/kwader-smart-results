@@ -1,148 +1,78 @@
 """
-Validation Engine - Single Responsibility: detect problems and explain WHY.
-Each issue: row, field, value, code, message_ar, reason_ar, action_ar
-Policy: If ANY error exists, whole import is BLOCKED. No partial import.
-Supports variable max marks: each subject has its own maximum from MAX row.
+Validation with HUMAN, POLITE messages. Never show codes to user.
+Each issue has: message (human), reason, action - all respectful.
 """
-from dataclasses import dataclass, asdict
 import pandas as pd
-
-REQUIRED_COLUMNS = ["student_id", "student_name", "academic_year"]
+from dataclasses import dataclass, asdict
 
 @dataclass
 class ValidationIssue:
-    row: int
-    field: str
-    value: str
-    code: str
-    message_ar: str
-    reason_ar: str
-    action_ar: str
-    severity: str = "error"
+    row: int; field: str; value: str; code: str; message: str; reason: str; action: str; severity: str = "error"
+    def to_dict(self): return asdict(self)
 
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    df.columns = [str(c).strip().lower().replace(" ", "_") for c in df.columns]
-    return df
-
-def validate_dataframe(
-    df: pd.DataFrame,
-    subjects: list[str],
-    subject_max_map: dict[str, float] | None = None,
-    has_max_row: bool = True
-) -> tuple[list[dict], list[dict]]:
-    """
-    Validate dataframe with per-subject max marks.
-    subject_max_map: {"anatomy": 100, "physiology": 50, "practical": 20}
-    has_max_row: False -> add warning that defaults 100 were used.
-    """
-    if subject_max_map is None:
-        subject_max_map = {s: 100.0 for s in subjects}
-
-    errors: list[ValidationIssue] = []
-    warnings: list[ValidationIssue] = []
-
-    # Warn if MAX row missing - admin may have forgotten it
+def validate_dataframe(df, subjects, subject_max_map=None, has_max_row=True, forced_year=None):
+    if subject_max_map is None: subject_max_map = {s: 100.0 for s in subjects}
+    errors, warnings = [], []
     if not has_max_row:
         warnings.append(ValidationIssue(2, "file", "", "NO_MAX_ROW",
-            "تنبيه: لم يتم العثور على صف MAX للدرجات النهائية",
-            "السبب: الصف الثاني في الملف لا يبدأ بكلمة MAX. النظام افترض أن كل مادة من 100. لو عندك مادة من 50 أو 20، النسبة هتطلع غلط.",
-            "الإجراء: أضف صف ثاني يبدأ بـ MAX في أول خلية، واكتب الدرجة النهائية لكل مادة تحته. مثال: MAX | | | 100 | 50 | 20",
-            severity="warning"))
-
-    # Validate MAX row values themselves
-    for subj, max_val in subject_max_map.items():
-        if max_val <= 0:
-            errors.append(ValidationIssue(2, subj, str(max_val), "INVALID_MAX_MARK",
-                f"الدرجة النهائية لمادة {subj} غير صحيحة: {max_val}",
-                f"السبب: الدرجة النهائية في صف MAX لمادة {subj} هي {max_val}. الدرجة النهائية لازم تكون أكبر من صفر، مفيش مادة نهايتها صفر أو سالب.",
-                f"الإجراء: صحح الدرجة النهائية في صف MAX لمادة {subj} إلى رقم صحيح مثل 10 أو 20 أو 50 أو 100."))
-
+            "Dear Sir/Madam, we could not find the maximum marks row, so we assumed 100 for all subjects.",
+            "The file does not contain a row starting with MAX. This is okay, but if you have subjects out of 50 or 20, the percentage may not be correct.",
+            "If you have subjects with different maximums, please kindly add a row starting with MAX and upload again. Thank you.", "warning").to_dict())
     if df.empty:
         errors.append(ValidationIssue(0, "file", "", "EMPTY_FILE",
-            "الملف فارغ", "السبب: لا توجد أي صفوف داخل ملف Excel.",
-            "الإجراء: تأكد أنك رفعت الملف الصحيح وأنه يحتوي على بيانات."))
-        return [e.to_dict() for e in errors], [w.to_dict() for w in warnings]
-
-    df = normalize_columns(df)
-    for col in REQUIRED_COLUMNS:
+            "Dear Sir/Madam, the file appears to be empty. Could you please check and upload the correct file?",
+            "There are no student rows inside the file.", "Please open the file, make sure it contains student data, and try uploading again.", "error").to_dict())
+        return errors, warnings
+    for col in ["student_id", "student_name"]:
         if col not in df.columns:
             errors.append(ValidationIssue(1, col, "", "MISSING_COLUMN",
-                f"العمود المطلوب غير موجود: {col}",
-                f"السبب: ملف Excel لا يحتوي على عمود {col}. بدون هذا العمود لا يمكن التعرف على الطالب.",
-                f"الإجراء: أضف عمود {col} في الصف الأول من الملف وأعد الرفع."))
-    if errors:
-        return [e.to_dict() for e in errors], [w.to_dict() for w in warnings]
-
-    dup_mask = df.duplicated(subset=["student_id", "academic_year"], keep=False)
-    if dup_mask.any():
-        for idx, row in df[dup_mask].iterrows():
-            # +3 because: +1 header, +1 MAX row, +1 zero-index
-            excel_row = idx + 3
-            errors.append(ValidationIssue(excel_row, "student_id", str(row["student_id"]), "DUPLICATE_ID",
-                f"رقم الطالب مكرر: {row['student_id']} في {row['academic_year']}",
-                "السبب: نفس رقم الطالب موجود مرتين لنفس السنة. قد يكون الطالب مكتوب مرتين بالخطأ، أو رقم طالب آخر مكتوب غلط.",
-                "الإجراء: احذف الصف المكرر أو صحح رقم الطالب، ثم أعد الرفع. لن يتم استيراد أي طالب حتى يتم حل التكرار."))
-
+                f"Dear Sir/Madam, we could not find the column for {col}. Could you please check the file?",
+                f"The file does not contain a column we can understand as {col}.",
+                f"Please make sure the file has a column for student name and student ID, with any name you like, and upload again.", "error").to_dict())
+    if errors: return errors, warnings
+    # Duplicates
+    dup = df.duplicated(subset=["student_id", "academic_year"], keep=False)
+    if dup.any():
+        for idx, row in df[dup].iterrows():
+            errors.append(ValidationIssue(idx+3, "student_id", str(row["student_id"]), "DUPLICATE_ID",
+                f"Dear Sir/Madam, student number {row['student_id']} appears twice. Could you please kindly review it?",
+                "The same student number was found twice for the same year. This may be a small typing mistake.",
+                "Please remove the duplicate row or correct the number, then upload again. Thank you so much.", "error").to_dict())
     for idx, row in df.iterrows():
-        # +3: header (1) + MAX row (1) + zero-index (1)
-        excel_row = idx + 3
+        r = idx + 3
         if row.isna().all():
-            warnings.append(ValidationIssue(excel_row, "row", "", "EMPTY_ROW",
-                f"صف فارغ في السطر {excel_row} تم تجاهله",
-                "السبب: صف فارغ تماماً في Excel، غالباً بسبب ضغطة Enter زيادة.",
-                "الإجراء: لا يوجد إجراء. تم تجاهل الصف بأمان ولم يؤثر على أي طالب.",
-                severity="warning"))
-            continue
-
-        if pd.isna(row.get("student_name")) or str(row.get("student_name")).strip() == "":
-            errors.append(ValidationIssue(excel_row, "student_name", "", "MISSING_NAME",
-                f"السطر {excel_row}: اسم الطالب مفقود",
-                "السبب: خلية اسم الطالب فارغة. بدون الاسم لا يمكن للطالب أن يبحث عن نتيجته لأن البحث يعتمد على الاسم + السنة + رقم الطالب.",
-                "الإجراء: اكتب اسم الطالب كاملاً كما في كشوف المدرسة ثم أعد الرفع."))
-
-        if pd.isna(row.get("student_id")) or str(row.get("student_id")).strip() == "":
-            errors.append(ValidationIssue(excel_row, "student_id", "", "MISSING_ID",
-                f"السطر {excel_row}: رقم الطالب مفقود",
-                "السبب: خلية رقم الطالب فارغة. رقم الطالب هو المعرف الفريد، بدونه لا يمكن تمييز الطالب عن زملائه الذين قد يتشابهون في الاسم.",
-                "الإجراء: اكتب رقم الطالب كاملاً، مع الحفاظ على الأصفار في البداية مثل 001254."))
-
-        if row.get("academic_year") not in ["first_year", "second_year", "third_year"]:
-            errors.append(ValidationIssue(excel_row, "academic_year", str(row.get("academic_year")), "INVALID_YEAR",
-                f"السطر {excel_row}: السنة الدراسية غير صحيحة: {row.get('academic_year')}",
-                "السبب: السنة الدراسية يجب أن تكون واحدة من ثلاث قيم فقط: first_year أو second_year أو third_year.",
-                "الإجراء: غيّر القيمة إلى first_year أو second_year أو third_year ثم أعد الرفع."))
-
+            warnings.append(ValidationIssue(r, "row", "", "EMPTY_ROW", f"Row {r} is empty, we skipped it safely.", "This is usually an extra Enter press.", "No action needed. Thank you.", "warning").to_dict()); continue
+        if pd.isna(row.get("student_name")) or str(row.get("student_name")).strip() in ["", "nan"]:
+            errors.append(ValidationIssue(r, "student_name", "", "MISSING_NAME",
+                f"Dear Sir/Madam, in row {r}, the student name is missing. Could you please kindly add it?",
+                "Without the name, the student cannot search for their result.",
+                "Please write the full student name as in school records and upload again. Thank you.", "error").to_dict())
+        if pd.isna(row.get("student_id")) or str(row.get("student_id")).strip() in ["", "nan"]:
+            errors.append(ValidationIssue(r, "student_id", "", "MISSING_ID",
+                f"Dear Sir/Madam, in row {r}, the student number is missing. Could you please kindly add it?",
+                "The student number is the unique identifier.",
+                "Please write the full student number, keeping leading zeros like 001254, and upload again.", "error").to_dict())
         for subj in subjects:
-            if subj not in df.columns:
-                continue
             max_mark = subject_max_map.get(subj, 100.0)
             val = row.get(subj)
-            if pd.isna(val) or str(val).strip() == "":
-                errors.append(ValidationIssue(excel_row, subj, "", "MISSING_MARK",
-                    f"السطر {excel_row}: درجة مادة {subj} مفقودة",
-                    f"السبب: خلية {subj} فارغة. لا يمكن حساب المجموع الكلي أو النسبة بدون درجة هذه المادة، وأي رقم نفترضه سيكون تزويراً للنتيجة.",
-                    f"الإجراء: اكتب درجة الطالب في {subj}، أو اكتب 0 إذا كان غائباً، ثم أعد الرفع."))
-                continue
-            try:
-                num = float(val)
-            except (ValueError, TypeError):
-                errors.append(ValidationIssue(excel_row, subj, str(val), "NON_NUMERIC_MARK",
-                    f"السطر {excel_row}: درجة {subj} ليست رقماً: {val}",
-                    "السبب: الخلية تحتوي على نص مثل 'غائب' أو 'A' أو '85+' بدلاً من رقم. النظام لا يستطيع جمع نص مع أرقام.",
-                    f"الإجراء: استبدل '{val}' برقم فقط من 0 إلى {max_mark}، أو 0 إذا كان الطالب غائباً."))
-                continue
+            if pd.isna(val) or str(val).strip() in ["", "nan"]:
+                errors.append(ValidationIssue(r, subj, "", "MISSING_MARK",
+                    f"Dear Sir/Madam, in row {r}, the mark for {subj} is missing. Could you please kindly check it?",
+                    f"The cell for {subj} is empty. We cannot calculate the total without it.",
+                    f"Please write the mark for {subj}, or 0 if the student was absent, then upload again. Thank you.", "error").to_dict()); continue
+            try: num = float(val)
+            except:
+                errors.append(ValidationIssue(r, subj, str(val), "NON_NUMERIC_MARK",
+                    f"Dear Sir/Madam, in row {r}, the mark for {subj} is '{val}', which is not a number. Could you please kindly correct it?",
+                    "The cell contains text instead of a number.", f"Please replace it with a number from 0 to {max_mark}. Thank you.", "error").to_dict()); continue
             if num < 0:
-                errors.append(ValidationIssue(excel_row, subj, str(val), "NEGATIVE_MARK",
-                    f"السطر {excel_row}: درجة سالبة في {subj}: {val}",
-                    "السبب: لا توجد درجة سالبة في الواقع. غالباً حدث خطأ كتابة مثل كتابة '-' بدلاً من '+' أو خطأ في نسخ الدرجة.",
-                    f"الإجراء: صحح الدرجة إلى رقم بين 0 و {max_mark}."))
+                errors.append(ValidationIssue(r, subj, str(val), "NEGATIVE_MARK",
+                    f"Dear Sir/Madam, in row {r}, the mark for {subj} is negative. Could you please kindly review it?",
+                    "There is no negative mark in reality, it is likely a small typing mistake.",
+                    f"Please correct it to a number between 0 and {max_mark}. Thank you.", "error").to_dict())
             elif num > max_mark:
-                errors.append(ValidationIssue(excel_row, subj, str(val), "EXCEEDS_MAX",
-                    f"السطر {excel_row}: درجة أكبر من النهاية العظمى في {subj}: {val} / {max_mark}",
-                    f"السبب: الدرجة النهائية لمادة {subj} هي {max_mark} كما هو مكتوب في صف MAX. أي رقم أكبر من {max_mark} يعني خطأ كتابة مثل كتابة 85 بدلاً من 8.5، أو جمع درجتين معاً بالخطأ.",
-                    f"الإجراء: راجع درجة الطالب الأصلية وصححها إلى رقم بين 0 و {max_mark}."))
-
-    return [e.to_dict() for e in errors], [w.to_dict() for w in warnings]
+                errors.append(ValidationIssue(r, subj, str(val), "EXCEEDS_MAX",
+                    f"Dear Sir/Madam, in row {r}, the mark for {subj} is {val}, but the maximum is {max_mark}. Could you please kindly check it?",
+                    f"The maximum for {subj} is {max_mark}. Any higher number is likely a typing mistake.",
+                    f"Please review the original mark and correct it to a number between 0 and {max_mark}. Thank you.", "error").to_dict())
+    return errors, warnings

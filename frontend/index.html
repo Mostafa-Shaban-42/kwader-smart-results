@@ -1,28 +1,61 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SMART RESULTS - مدرسة كوادر للتمريض</title>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KAWADER NURSING SCHOOL - Smart Results</title>
 <link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/student.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script></head>
-<body>
-<div class="container">
-<header><h1>SMART RESULTS</h1><p>مدرسة كوادر للتمريض - KAWADER NURSING SCHOOL</p><span>بوابة نتائج الطلاب</span></header>
-<div class="card" id="lookupCard">
-<h2>أدخل بياناتك</h2>
-<label>اسم الطالب</label><input id="studentName" placeholder="مثال: أحمد محمد">
-<label>السنة الدراسية</label>
-<select id="academicYear"><option value="">اختر السنة الدراسية</option><option value="first_year">السنة الأولى</option><option value="second_year">السنة الثانية</option><option value="third_year">السنة الثالثة</option></select>
-<label>رقم الطالب</label><input id="studentId" placeholder="001254" inputmode="numeric">
-<button id="viewBtn" onclick="lookupResult()">عرض النتيجة</button>
-<p id="errorMsg" class="error hidden"></p>
+<body class="page-search" id="pageBody">
+<div class="container" id="mainContainer">
+<header class="main-header">
+<div class="logo-wrap"><div class="logo-circle"><img src="assets/images/logo.png" alt="KAWADER"></div>
+<div class="logo-title">KAWADER</div><div class="logo-sub">NURSING SCHOOL</div><div class="logo-ar">مدرسة كوادر للتمريض</div>
+<div class="logo-line">◆</div><div class="logo-tag">PEOPLE • CARE • A BRIGHTER TOMORROW</div></div>
+<p style="font-family:Georgia,serif;font-size:19px;color:#3B1B5E;margin:14px 0 0;text-align:center">A Kinder Healthier Tomorrow</p></header>
+
+<div class="card lookup-card" id="lookupCard">
+<h2>Check Your Result</h2>
+<label>Student Name</label>
+<div class="field"><span class="icon">👤</span><input id="studentName" placeholder="Student Name"></div>
+<label>Seat Number</label>
+<div class="field"><span class="icon">#</span><input id="studentId" placeholder="Seat Number" inputmode="numeric"></div>
+<label>Academic Year</label>
+<div class="field"><span class="icon">📅</span><select id="academicYear"><option value="">Academic Year</option><option value="first_year">First Year</option><option value="second_year">Second Year</option><option value="third_year">Third Year</option><option value="fourth_year">Fourth Year</option><option value="fifth_year">Fifth Year</option></select></div>
+<button id="viewBtn" onclick="lookupResult()">View Result <span>→</span></button><p id="errorMsg" class="error hidden"></p>
+<p class="hint">Education Today. Healthier Tomorrows.</p>
 </div>
-<div class="card hidden" id="resultCard">
-<h2>نتيجة الطالب</h2>
-<p><b>الاسم:</b> <span id="rName"></span> | <b>الرقم:</b> <span id="rId"></span> | <b>السنة:</b> <span id="rYear"></span></p>
-<table><thead><tr><th>المادة</th><th>الدرجة</th><th>النهاية العظمى</th></tr></thead><tbody id="subjectsBody"></tbody></table>
-<div class="summary"><div>المجموع: <b id="rTotal"></b></div><div>النسبة: <b id="rPct"></b>%</div><div>التقدير: <b id="rGrade"></b></div><div>الترتيب: <b id="rRank"></b></div></div>
-<canvas id="subjectChart"></canvas>
-<button onclick="location.reload()">بحث جديد</button>
-</div><footer>نظام نتائج المدرسة</footer></div>
+
+<div class="card result-card hidden" id="resultCard">
+<div class="result-banner"><img src="assets/images/logo.png" class="b-logo"><h2>KAWADER NURSING SCHOOL</h2><p>KNOWLEDGE • CARE • A HEALTHIER TOMORROW</p></div>
+<div class="result-head">Student Academic Result</div><p class="result-sub">Official Academic Transcript</p>
+<div style="display:flex;gap:24px;flex-wrap:wrap;font-size:13px;margin-bottom:16px"><div><span style="color:#8A7A9A">Student Name</span><br><b id="rName"></b></div><div><span style="color:#8A7A9A">Seat Number</span><br><b id="rId"></b></div><div><span style="color:#8A7A9A">Academic Year</span><br><b id="rYear"></b></div><div><span style="color:#8A7A9A">Program</span><br><b>Diploma in Nursing</b></div></div>
+<div class="table-wrap"><table><thead><tr><th>#</th><th>Subject</th><th>Max. Marks</th><th>Obtained Marks</th><th>Grade</th></tr></thead><tbody id="subjectsBody"></tbody></table></div>
+<div class="score-row">
+  <div class="rank-circle-wrap">
+    <div id="crownBadge" class="crown-badge hidden">👑</div>
+    <div class="score-circle" id="rankCircle">
+      <span class="rank-num" id="rRankCircle">-</span>
+      <span class="rank-out" id="rRankOut">Out of -</span>
+    </div>
+  </div>
+  <div><p style="color:#8A7A9A;font-size:13px;margin:0">Total Percentage</p><p style="font-size:28px;font-weight:800;color:#3B1B5E;margin:0" id="rPct2">-</p><p style="color:#8A7A9A;font-size:12px;margin:2px 0">Total: <b id="rTotal" style="color:#3B1B5E">-</b> &nbsp;|&nbsp; Grade: <b id="rGradeLabel" style="color:#3B1B5E">-</b></p></div>
+  <div><p style="color:#8A7A9A;font-size:13px;margin:0 0 6px">Result Status</p><span class="passed-pill">✓ Passed</span><p style="color:#8A7A9A;font-size:12px;margin:6px 0 0">Congratulations! Keep making a difference.</p></div>
+</div>
+<div id="rankBox" class="rank-box"></div>
+<div class="diagram"><h3>Your Position In Your Batch</h3><canvas id="rankChart"></canvas><p id="motivationText"></p></div>
+<div class="summary"><div>Total: <b id="rTotal2"></b></div><div>Rank: <b id="rRank"></b> / <span id="rTotalStudents"></span></div></div>
+<button onclick="window.print()">⬇ Download / Print Result</button>
+<button class="secondary" onclick="location.reload()">New Search</button>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;border-top:1px solid #EDE7F3;padding-top:14px"><span style="font-size:11px;color:#8A7A9A">KAWADER NURSING SCHOOL<br>A PROUD LEGACY OF CARE</span><img src="assets/images/logo.png" style="width:28px;height:28px;object-fit:cover;border-radius:50%"><span style="font-size:10px;color:#8A7A9A">PEOPLE • CARE • A HEALTHIER EGYPT</span></div>
+</div>
+
+<footer>NURSING TODAY • A BRIGHTER TOMORROW</footer></div>
 <script src="assets/js/api.js"></script><script src="assets/js/charts.js"></script><script src="assets/js/app.js"></script>
+<script>
+const _obs = new MutationObserver(()=>{
+  const isResult = !document.getElementById('resultCard').classList.contains('hidden');
+  document.body.className = isResult ? 'page-result' : 'page-search';
+  document.body.id = 'pageBody';
+  document.getElementById('mainContainer').className = isResult ? 'container wide' : 'container';
+});
+_obs.observe(document.getElementById('resultCard'), {attributes:true, attributeFilter:['class']});
+</script>
 </body></html>

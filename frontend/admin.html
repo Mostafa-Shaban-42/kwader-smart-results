@@ -1,65 +1,46 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة الإدارة - SMART RESULTS</title>
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/admin.css">
-</head>
-<body>
-<div class="admin-layout">
-  <div class="sidebar">
-    <h2>SMART RESULTS</h2>
-    <p>كوادر للتمريض - KAWADER NURSING SCHOOL</p>
-    <a href="#" onclick="showSection('upload'); return false;">رفع Excel</a>
-    <a href="#" onclick="showSection('analytics'); return false;">الإحصائيات</a>
-    <a href="#" onclick="logout(); return false;">خروج</a>
-  </div>
-
-  <div class="main">
-    <!-- Login -->
-    <div id="loginBox" class="card">
-      <h2>دخول الإدارة</h2>
-      <label>البريد الإلكتروني</label>
-      <input id="email" placeholder="admin@kawader.edu" type="email">
-      <label>كلمة المرور</label>
-      <input id="password" type="password" placeholder="كلمة المرور">
-      <button id="loginBtn" onclick="adminLogin()">دخول</button>
-    </div>
-
-    <!-- Upload -->
-    <div id="uploadBox" class="card hidden">
-      <h2>رفع ملف Excel</h2>
-      <p style="color:#7040A5;font-size:14px">صيغة الملف: الصف 1 = الأعمدة | الصف 2 = MAX + الدرجات النهائية (100 / 50 / 20 / 10) | الصف 3+ = بيانات الطلاب</p>
-      <label>اختر ملف Excel</label>
-      <input type="file" id="excelFile" accept=".xlsx,.xls">
-      <button id="uploadBtn" onclick="uploadExcel()">رفع وفحص</button>
-
-      <div id="issuesBox"></div>
-      <div id="previewBox"></div>
-      <pre id="uploadResult"></pre>
-
-      <button id="calcBtn" onclick="calculateBatch()" disabled>حساب النتائج</button>
-      <button id="publishBtn" onclick="publishBatch()" disabled>نشر النتائج</button>
-    </div>
-
-    <!-- Analytics -->
-    <div id="analyticsBox" class="card hidden">
-      <h2>الإحصائيات</h2>
-      <label>السنة الدراسية</label>
-      <select id="anaYear">
-        <option value="first_year">السنة الأولى</option>
-        <option value="second_year">السنة الثانية</option>
-        <option value="third_year">السنة الثالثة</option>
-      </select>
-      <button id="anaBtn" onclick="loadAnalytics()">عرض</button>
-      <pre id="anaResult"></pre>
-    </div>
-  </div>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin - SMART RESULTS</title><link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/admin.css"></head>
+<body class="page-login" id="pageBody">
+<div class="container" id="mainContainer">
+<div id="loginBox" class="card admin-card">
+<div class="logo-wrap"><div class="logo-circle"><img src="assets/images/logo.png" alt="KAWADER"></div>
+<div class="logo-title">KAWADER</div><div class="logo-sub">NURSING SCHOOL</div>
+<div class="logo-line">◆</div><div class="admin-portal">— ADMIN PORTAL —</div></div>
+<label>Email</label>
+<div class="field"><span class="icon">✉️</span><input id="email" type="email" placeholder="admin@kawader.edu.eg"></div>
+<label>Password</label>
+<div class="field password"><span class="icon">🔒</span><input id="password" type="password" placeholder="Enter your password">
+  <button type="button" class="eye-btn" onclick="togglePassword()" title="Show / Hide Password"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+</div>
+<button id="loginBtn" onclick="adminLogin()">Sign In <span>→</span></button><p id="loginMsg" class="error hidden"></p>
+<div style="display:flex;align-items:center;gap:12px;margin-top:18px"><div style="flex:1;height:1px;background:#EDE7F3"></div><span style="font-size:11px;letter-spacing:2px;color:#8A7A9A">SECURE ACCESS</span><div style="flex:1;height:1px;background:#EDE7F3"></div></div>
+<p class="hint">SUPPORTING EDUCATION. ADVANCING CARE.</p>
 </div>
 
-<script src="assets/js/api.js"></script>
-<script src="assets/js/admin.js"></script>
-</body>
-</html>
+<div id="uploadBox" class="card admin-card hidden">
+<label>1. Select Academic Year</label>
+<div class="field"><span class="icon">📅</span><select id="uploadYear"><option value="first_year">First Year</option><option value="second_year">Second Year</option><option value="third_year">Third Year</option><option value="fourth_year">Fourth Year</option><option value="fifth_year">Fifth Year</option></select></div>
+<label>2. Choose Excel File</label>
+<div class="drop-box">
+  <svg class="upload-ic" viewBox="0 0 120 110"><path d="M60 2 L72 18 L88 10 L82 28 L98 32 L80 42 L84 58 L60 50 L36 58 L40 42 L22 32 L38 28 L32 10 L48 18 Z" fill="#5B2A8A"/><path d="M60 10 L68 22 L78 16 L74 28 L84 32 L70 38 L72 48 L60 44 L48 48 L50 38 L36 32 L46 28 L42 16 L52 22 Z" fill="#C9A227" opacity=".4"/><path d="M25 78 Q25 60 45 60 Q50 48 65 48 Q85 48 90 62 Q102 62 102 78 Q102 92 86 92 L35 92 Q25 92 25 78 Z" fill="#fff" stroke="#3B1B5E" stroke-width="2.5"/><path d="M60 70 L60 86 M50 76 L60 66 L70 76" fill="none" stroke="#3B1B5E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <h3>Upload Student Results File<br>(Excel / CSV)</h3>
+  <p class="small">Drag and drop your file here<br>or click to browse</p>
+  <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="margin-top:12px">
+</div>
+<button id="uploadBtn" onclick="uploadExcel()">Upload & Check</button>
+<div id="issuesBox"></div><div id="previewBox"></div>
+<button id="calcBtn" onclick="calculateBatch()" disabled>Calculate Results</button>
+<button id="publishBtn" onclick="publishBatch()" disabled>⬆️ Publish Results</button>
+<p style="text-align:center;font-size:12px;color:#7A6A8A">Accepted formats: .xlsx, .xls, .csv &nbsp;|&nbsp; Max size: 10 MB</p>
+<div id="pubStatusBox"></div>
+<div class="steps-3">
+  <div class="step-card"><div class="step-ic">📄</div><b>1. Upload</b><p>Select your results file</p></div>
+  <div class="step-card"><div class="step-ic">📊</div><b>2. Validate</b><p>We'll check the data</p></div>
+  <div class="step-card"><div class="step-ic">✓</div><b>3. Publish</b><p>Make results available</p></div>
+</div>
+<button class="secondary" onclick="logout()">Logout</button>
+<p style="text-align:center;font-size:11px;color:#7A6A8A;margin-top:14px">INSPIRED BY A RICH HERITAGE<br>CARING FOR BRIGHTER FUTURES</p>
+</div>
+<div id="analyticsBox" class="card hidden"><h2>Statistics</h2><select id="anaYear"><option value="first_year">First Year</option><option value="second_year">Second Year</option><option value="third_year">Third Year</option></select><button onclick="loadAnalytics()">Show</button><pre id="anaResult"></pre></div>
+</div><script src="assets/js/api.js"></script><script src="assets/js/admin.js"></script></body></html>
